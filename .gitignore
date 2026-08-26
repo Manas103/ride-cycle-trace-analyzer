@@ -1,0 +1,30 @@
+# C++ build outputs
+build/
+build-san/
+build-msvc/
+*.o
+*.obj
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.out
+
+# .NET build outputs
+csharp/**/bin/
+csharp/**/obj/
+
+# Python
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# IDE
+.vs/
+.vscode/
+*.user
+
+# Regenerated synthetic test fixtures (regenerate with: python tools/gen_traces.py)
+data/sessions/
+data/manifest.json
+data/_diff_scratch.csv

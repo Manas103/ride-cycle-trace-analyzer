@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RideCycleTraceAnalyzer</RootNamespace>
+    <AssemblyName>RideCycleTraceAnalyzer</AssemblyName>
+  </PropertyGroup>
+
+  <!-- The native parser DLL is built separately by CMake + MSVC (see the
+       repo README's "Building and running"); this copies it next to the
+       managed exe if it has already been built, so a plain `dotnet run`
+       after the native build works without a manual copy step. Missing
+       the DLL does not fail `dotnet build`, only opening a trace at
+       runtime, which surfaces as a clear error in the status bar. -->
+  <ItemGroup>
+    <None Include="..\..\build-msvc\TraceEngineNative.dll" Condition="Exists('..\..\build-msvc\TraceEngineNative.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>TraceEngineNative.dll</Link>
+    </None>
+  </ItemGroup>
+
+</Project>

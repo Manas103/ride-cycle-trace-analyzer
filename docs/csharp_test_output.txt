@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  RideCycleTraceAnalyzer -> C:\Users\Manas\Downloads\Total Job Application process flow\projects\ride-cycle-trace-analyzer\csharp\RideCycleTraceAnalyzer\bin\Debug\net8.0-windows\RideCycleTraceAnalyzer.dll
+  RideCycleTraceAnalyzer.Tests -> C:\Users\Manas\Downloads\Total Job Application process flow\projects\ride-cycle-trace-analyzer\csharp\RideCycleTraceAnalyzer.Tests\bin\Debug\net8.0-windows\RideCycleTraceAnalyzer.Tests.dll
+Test run for C:\Users\Manas\Downloads\Total Job Application process flow\projects\ride-cycle-trace-analyzer\csharp\RideCycleTraceAnalyzer.Tests\bin\Debug\net8.0-windows\RideCycleTraceAnalyzer.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 17.11.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     6, Skipped:     0, Total:     6, Duration: 1 ms - RideCycleTraceAnalyzer.Tests.dll (net8.0)
