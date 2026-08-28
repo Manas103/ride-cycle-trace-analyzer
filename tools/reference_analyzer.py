@@ -81,3 +81,112 @@ def violations_to_csv_rows(violations: list[Violation]) -> list[str]:
     for v in violations:
         rows.append(f"{v.kind},{v.phase},{v.sample_index},{v.value_ms},{v.detail}")
     return rows
+
+
+# ---------------------------------------------------------------------
+# Framed serial-bus capture support
+#
+# Independent second implementation of the wire format documented in
+# include/trace_engine.hpp: a SYNC byte (0xAA), a LEN byte, a SEQ byte, a
+# LEN-byte payload (a little-endian uint32 timestamp followed by a
+# 1-byte phase code), then an additive mod-256 checksum over
+# LEN+SEQ+payload. This module was written from that byte-layout spec,
+# not translated from the C++ loop; the control flow below (slicing a
+# bytes object and re-scanning with bytes.find for resync) is idiomatic
+# Python rather than a line-for-line port of the C++ pointer-walking, the
+# same independence discipline as detect_violations above.
+
+SERIAL_SYNC_BYTE = 0xAA
+SERIAL_FRAME_PAYLOAD_LEN = 5  # 4-byte timestamp + 1-byte phase code
+PHASE_CODE_TABLE = ["LOAD", "RESTRAINT_CHECK", "DISPATCH", "RUN", "UNLOAD"]
+
+
+def compute_frame_checksum(length: int, seq: int, payload: bytes) -> int:
+    return (length + seq + sum(payload)) & 0xFF
+
+
+def parse_serial_frames(path: str) -> tuple[list[Event], list[Violation], int]:
+    with open(path, "rb") as f:
+        buf = f.read()
+
+    n = len(buf)
+    pos = 0
+    frame_index = 0
+    frame_count = 0
+    expected_seq = -1
+    events: list[Event] = []
+    violations: list[Violation] = []
+
+    while pos < n:
+        if buf[pos] != SERIAL_SYNC_BYTE:
+            start = pos
+            next_sync = buf.find(bytes([SERIAL_SYNC_BYTE]), pos)
+            if next_sync == -1:
+                violations.append(Violation(
+                    "FRAMING_SYNC", "FRAME", frame_index, -1,
+                    f"lost sync at byte {start}, no further sync byte found, "
+                    "capture ends misaligned",
+                ))
+                pos = n
+            else:
+                violations.append(Violation(
+                    "FRAMING_SYNC", "FRAME", frame_index, -1,
+                    f"lost sync at byte {start}, resynced at byte {next_sync}",
+                ))
+                pos = next_sync
+            frame_index += 1
+            continue
+
+        if pos + 3 > n:
+            violations.append(Violation(
+                "FRAMING_SYNC", "FRAME", frame_index, -1,
+                f"truncated frame header at byte {pos}",
+            ))
+            frame_count += 1
+            break
+
+        length = buf[pos + 1]
+        seq = buf[pos + 2]
+        frame_total = length + 4  # sync + len + seq + payload + checksum
+        if pos + frame_total > n:
+            violations.append(Violation(
+                "FRAMING_SYNC", "FRAME", frame_index, -1,
+                f"truncated frame payload/checksum at byte {pos}",
+            ))
+            frame_count += 1
+            break
+
+        payload = buf[pos + 3: pos + 3 + length]
+        checksum_byte = buf[pos + 3 + length]
+        computed = compute_frame_checksum(length, seq, payload)
+        if computed != checksum_byte:
+            violations.append(Violation(
+                "FRAMING_CHECKSUM", "FRAME", frame_index, -1,
+                f"frame {frame_index} checksum mismatch: computed {computed}, got {checksum_byte}",
+            ))
+
+        if expected_seq == -1:
+            expected_seq = seq
+        elif seq != (expected_seq & 0xFF):
+            violations.append(Violation(
+                "FRAMING_SEQUENCE", "FRAME", frame_index, -1,
+                f"frame {frame_index} expected seq {expected_seq & 0xFF}, got {seq}",
+            ))
+        expected_seq = seq + 1
+
+        if len(payload) >= SERIAL_FRAME_PAYLOAD_LEN:
+            ts = int.from_bytes(payload[0:4], byteorder="little", signed=False)
+            phase_code = payload[4]
+            phase = PHASE_CODE_TABLE[phase_code] if phase_code < len(PHASE_CODE_TABLE) else "UNKNOWN"
+            events.append(Event(ts, phase, frame_index))
+
+        pos += frame_total
+        frame_index += 1
+        frame_count += 1
+
+    return events, violations, frame_count
+
+
+def detect_framed_violations(path: str) -> list[Violation]:
+    events, framing_violations, _frame_count = parse_serial_frames(path)
+    return framing_violations + detect_violations(events)

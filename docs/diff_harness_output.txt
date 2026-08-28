@@ -1,4 +1,11 @@
 
-Seeded violations caught: C++ 30/30, Python 30/30
-False positives across 40 clean sessions: C++ 0, Python 0
-Sessions where C++ and Python disagreed (any violation, not just the seeded one): 0 / 70
+[csv] Seeded violations caught: C++ 30/30, Python 30/30
+[csv] False positives across 40 clean sessions: C++ 0, Python 0
+[csv] Sessions where C++ and Python disagreed: 0 / 70
+[framed] Seeded violations caught: C++ 30/30, Python 30/30
+[framed] False positives across 40 clean sessions: C++ 0, Python 0
+[framed] Sessions where C++ and Python disagreed: 0 / 70
+
+[combined] Seeded violations caught: C++ 60/60, Python 60/60
+[combined] False positives across 80 clean sessions: C++ 0, Python 0
+[combined] Sessions where C++ and Python disagreed (any violation, not just the seeded one): 0 / 140

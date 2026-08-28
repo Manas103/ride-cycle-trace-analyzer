@@ -8,4 +8,4 @@ VSTest version 17.11.1 (x64)
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:     6, Skipped:     0, Total:     6, Duration: 1 ms - RideCycleTraceAnalyzer.Tests.dll (net8.0)
+Passed!  - Failed:     0, Passed:     8, Skipped:     0, Total:     8, Duration: 2 ms - RideCycleTraceAnalyzer.Tests.dll (net8.0)

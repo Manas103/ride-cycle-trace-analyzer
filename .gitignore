@@ -28,3 +28,8 @@ __pycache__/
 data/sessions/
 data/manifest.json
 data/_diff_scratch.csv
+
+# Regenerated framed serial-bus capture fixtures (regenerate with:
+# python tools/gen_serial_frames.py)
+data/frames/
+data/frames_manifest.json

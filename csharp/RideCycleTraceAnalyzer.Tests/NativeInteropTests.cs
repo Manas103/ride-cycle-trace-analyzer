@@ -44,4 +44,31 @@ public class NativeInteropTests
         var report = NativeInterop.AnalyzeTrace(path);
         Assert.Contains(report.Violations, v => v.Kind == "INTERLOCK");
     }
+
+    private static string FramesDir()
+    {
+        var dir = AppContext.BaseDirectory;
+        var repoRoot = Path.GetFullPath(Path.Combine(dir, "..", "..", "..", "..", ".."));
+        return Path.Combine(repoRoot, "data", "frames");
+    }
+
+    [Fact]
+    public void AnalyzeFramedCapture_finds_no_violations_on_a_clean_framed_session()
+    {
+        if (!NativeDllPresent()) return;
+        var path = Path.Combine(FramesDir(), "clean_00.bin");
+        if (!File.Exists(path)) return;
+        var report = NativeInterop.AnalyzeFramedCapture(path);
+        Assert.Empty(report.Violations);
+    }
+
+    [Fact]
+    public void AnalyzeFramedCapture_catches_the_seeded_checksum_violation()
+    {
+        if (!NativeDllPresent()) return;
+        var path = Path.Combine(FramesDir(), "fault_00_checksum.bin");
+        if (!File.Exists(path)) return;
+        var report = NativeInterop.AnalyzeFramedCapture(path);
+        Assert.Contains(report.Violations, v => v.Kind == "FRAMING_CHECKSUM");
+    }
 }
